@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MarkerClusterer v3 Simple Example</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px 20px 20px;
+            font-family: Arial;
+            font-size: 16px;
+        }
+
+        #map-container {
+            padding: 6px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #ccc #ccc #999 #ccc;
+            -webkit-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+            -moz-box-shadow: rgba(64, 64, 64, 0.5) 0 2px 5px;
+            box-shadow: rgba(64, 64, 64, 0.1) 0 2px 5px;
+            width: 800px;
+        }
+
+        #map {
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+    <script src="traffic_accidents.json"></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHvjraZ_YQXZvFg8etDFaKUxp3EG1-DOs"></script>
+    <script type="text/javascript" src="../src/chart-markerclusterer.js"></script>
+    <script>
+        function initialize() {
+            var center = new google.maps.LatLng(59.9214, 10.8463);
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 12,
+                center: center,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+
+            var opt = {
+                "styles" : [
+                    {textColor: "black", textSize: 15, height: 60, width: 60},
+                    {textColor: "black", textSize: 15, height: 70, width: 70},                    
+                    {textColor: "black", textSize: 15, height: 80, width: 80},
+                    {textColor: "black", textSize: 15, height: 90, width: 90},                    
+                    {textColor: "black", textSize: 15, height: 100, width: 100}
+                ],
+
+                "legend": {
+                    "Fatal" : "#FF0066",
+                    "Very serious injuries" : "#FF9933",
+                    "Serious injuries" : "#FFFF00" ,
+                    "Minor injuries" : "#99FF99",
+                    "No injuries" : "#66CCFF",
+                    "Not recorded" : "#A5A5A5"
+                }
+            };
+
+            var markers = [];
+            for (var i = 0; i < data.features.length; i++) {
+                var accident_injuries = data.features[i].properties["5074"];
+                var accident_title = "";
+                var accident_lnglat = data.features[i].geometry["coordinates"];
+                switch (Number(accident_injuries)) {
+                    case 1:
+                        accident_title = "Fatal";
+                        break;
+                    case 3:
+                        accident_title = "Serious injuries";
+                        break;
+                    case 2:
+                        accident_title = "Very serious injuries";
+                        break;
+                    case 5:
+                        accident_title = "No injuries";
+                        break;
+                    case 4:
+                        accident_title = "Minor injuries";
+                        break;
+                    case 6:
+                        accident_title = "Not recorded";
+                        break;
+                }
+                var accident_LatLng = new google.maps.LatLng(Number(accident_lnglat[1]), Number(accident_lnglat[0]));
+                var marker = new google.maps.Marker({
+                    position: accident_LatLng,
+                    title: accident_title
+                });
+                markers.push(marker);
+            }
+
+            var markerCluster = new MarkerClusterer(map, markers, opt);
+        }
+
+        google.load("visualization", "1", {packages: ["corechart"]});
+        google.setOnLoadCallback(initialize);
+    </script>
+
+</head>
+<body>
+<h3>An example of Chart Marker Clusterer</h3>
+
+<div id="map-container">
+    <div id="map"></div>
+</div>
+</body>
+</html>
