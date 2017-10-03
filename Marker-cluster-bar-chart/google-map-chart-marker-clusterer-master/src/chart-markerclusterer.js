@@ -1274,7 +1274,7 @@ ClusterIcon.prototype.renderCharts_ = function () {
     var clusterChartData = this.cluster_.getChartData();
     var clusterLegend = this.cluster_.getMarkerClusterer().getLegend();
 
-    var dataArray = [['Title', 'Count']];
+    var dataArray = [['Title', 'Count', { role: 'style'}]];
     var chartColorsSeq = [];
 
     for (var key in clusterChartData) {
@@ -1282,6 +1282,7 @@ ClusterIcon.prototype.renderCharts_ = function () {
             var dataRow = [];
             dataRow.push(key);
             dataRow.push(clusterChartData[key]);
+            dataRow.push('color:'+clusterLegend[key]);
             dataArray.push(dataRow);
             chartColorsSeq.push(clusterLegend[key]);
         }
