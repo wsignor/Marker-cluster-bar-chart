@@ -28,12 +28,22 @@
         }
     </style>
     <script src="traffic_accidents.json"></script>
+    <script src="https://d3js.org/d3.v4.js" charset="utf-8"></script>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHvjraZ_YQXZvFg8etDFaKUxp3EG1-DOs"></script>
     <script type="text/javascript" src="../src/chart-markerclusterer.js"></script>
     <script>
+
+        var acidentes = [];
+
+        function init1() {
+            d3.csv("acidentes-2016.csv", function(d) {
+                acidentes = d;
+                initialize();
+            });
+        }
         function initialize() {
-            var center = new google.maps.LatLng(59.9214, 10.8463);
+            var center = new google.maps.LatLng(-30.085209, -51.233864);
 
             var map = new google.maps.Map(document.getElementById('map'), {
                 zoom: 12,
@@ -44,9 +54,9 @@
             var opt = {
                 "styles" : [
                     {textColor: "black", textSize: 15, height: 60, width: 60},
-                    {textColor: "black", textSize: 15, height: 70, width: 70},                    
+                    {textColor: "black", textSize: 15, height: 70, width: 70},
                     {textColor: "black", textSize: 15, height: 80, width: 80},
-                    {textColor: "black", textSize: 15, height: 90, width: 90},                    
+                    {textColor: "black", textSize: 15, height: 90, width: 90},
                     {textColor: "black", textSize: 15, height: 100, width: 100}
                 ],
 
@@ -60,11 +70,13 @@
                 }
             };
 
+            //console.log('acidentes: ' , acidentes);
+
             var markers = [];
-            for (var i = 0; i < data.features.length; i++) {
-                var accident_injuries = data.features[i].properties["5074"];
+            for (var i = 0; i < acidentes.length; i++) {
+                var accident_injuries = acidentes[i].FERIDOS;
                 var accident_title = "";
-                var accident_lnglat = data.features[i].geometry["coordinates"];
+                //var accident_lnglat = acidentes[i].geometry["coordinates"];
                 switch (Number(accident_injuries)) {
                     case 1:
                         accident_title = "Fatal";
@@ -85,7 +97,7 @@
                         accident_title = "Not recorded";
                         break;
                 }
-                var accident_LatLng = new google.maps.LatLng(Number(accident_lnglat[1]), Number(accident_lnglat[0]));
+                var accident_LatLng = new google.maps.LatLng(acidentes[i].LATITUDE, acidentes[i].LONGITUDE);
                 var marker = new google.maps.Marker({
                     position: accident_LatLng,
                     title: accident_title
@@ -96,8 +108,14 @@
             var markerCluster = new MarkerClusterer(map, markers, opt);
         }
 
+        /*function analyze(error, cities) {
+         if(error) { console.log(error); }
+
+         console.log(cities[0]);
+         }*/
+
         google.load("visualization", "1", {packages: ["corechart"]});
-        google.setOnLoadCallback(initialize);
+        google.setOnLoadCallback(init1);
     </script>
 
 </head>

@@ -1284,6 +1284,7 @@ ClusterIcon.prototype.renderCharts_ = function () {
             dataRow.push(clusterChartData[key]);
             dataRow.push('color:'+clusterLegend[key]);
             dataArray.push(dataRow);
+            //console.log(key);
             chartColorsSeq.push(clusterLegend[key]);
         }
 
@@ -1300,8 +1301,6 @@ ClusterIcon.prototype.renderCharts_ = function () {
         pieSliceText: 'none'
     };
 
-    //var chart = new google.visualization.PieChart(this.chart_div_);
-    console.log(this.chart_div_);
     var chart = new google.visualization.BarChart(this.chart_div_);
     chart.draw(data, options);
 
