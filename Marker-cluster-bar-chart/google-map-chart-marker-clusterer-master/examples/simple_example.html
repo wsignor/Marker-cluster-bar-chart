@@ -74,6 +74,7 @@
 
             var markers = [];
             for (var i = 0; i < acidentes.length; i++) {
+                //Actually acidentes[i].FERIDOS gets the number of victims per accident instead of a code to severity
                 var accident_injuries = acidentes[i].FERIDOS;
                 var accident_title = "";
                 //var accident_lnglat = acidentes[i].geometry["coordinates"];
