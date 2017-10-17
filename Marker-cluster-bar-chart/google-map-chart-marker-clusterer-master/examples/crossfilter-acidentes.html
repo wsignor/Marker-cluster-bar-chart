@@ -9,6 +9,7 @@
 
 <body>
 <div id="topics-array-rows"></div>
+<div id="topics-array-rows-week-days"></div>
 <div id="medium-array-pie"></div>
 <div id="states-pie"></div>
 <div id="dates-bars"></div>
@@ -42,19 +43,37 @@
 
         var cf = crossfilter(acidentes);
 
-        // tell crossfilter that this dimension isArray=true
+        // tell crossfilter that this dimension isArray=false
         var topicsDim = cf.dimension(function (d) {
             return d.TIPO_ACID;
-        }, true);
+        }, false);
         var topicsGroup = topicsDim.group();
 
         var topicsArrayRowChart = dc.rowChart("#topics-array-rows")
             .renderLabel(true)
             .height(200)
-            .width(250)
+            .width(350)
             .dimension(topicsDim)
             .group(topicsGroup)
-            .cap(3)
+            //.cap(3) limits first 3 results
+            .ordering(function (d) {
+                return -d.value;
+            })
+            .xAxis().ticks(3);
+
+
+        var topicsDiaSem = cf.dimension(function (d) {
+            return d.DIA_SEM;
+        }, false);
+        var topicsDiaSemGroup = topicsDiaSem.group();
+
+        var topicsArrayRowChart = dc.rowChart("#topics-array-rows-week-days")
+            .renderLabel(true)
+            .height(200)
+            .width(350)
+            .dimension(topicsDiaSem)
+            .group(topicsDiaSemGroup)
+            //.cap(3) limits first 3 results
             .ordering(function (d) {
                 return -d.value;
             })
@@ -62,8 +81,8 @@
 
         // tell crossfilter that this dimension isArray=true
         var mediumDim = cf.dimension(function (d) {
-            return d.DIA_SEM;
-        }, true);
+            return d.NOITE_DIA;
+        }, false);
         var mediumGroup = mediumDim.group();
 
         var mediumArrayPieChart = dc.pieChart("#medium-array-pie")
@@ -74,7 +93,7 @@
 
         // leave crossfilter isArray default (false)
         var statesDim = cf.dimension(function (d) {
-            return d.FERIDOS;
+            return d.REGIAO;
         });
         var stateGroup = statesDim.group();
 
@@ -85,24 +104,36 @@
             .group(stateGroup);
 
         // leave crossfilter isArray default (false)
-        /*var datesDim = cf.dimension(function (d) {
-            return d.date;
+        var datesDim = cf.dimension(function (d) {
+            var str = d.DATA;
+            var pattern = /(\d{2})\.(\d{2})\.(\d{4})/;
+            var dt = new Date(str.replace(pattern,'$3-$2-$1'));
+            return dt;
         });
         var datesGroup = datesDim.group();
 
         var datesBarChart = dc.barChart("#dates-bars")
-            .width(400)
+            .width(500)
             .height(200)
             .transitionDuration(800)
             .margins({top: 10, right: 50, bottom: 30, left: 40})
             .dimension(datesDim)
             .group(datesGroup)
-            .x(d3.time.scale().domain([new Date(2012, 9, 1), new Date(2012, 9, 11)]))
+            .x(d3.time.scale().domain([new Date(2016, 0, 1), new Date(2016, 11, 31)]))
             .xUnits(d3.time.days)
             .centerBar(true)
             .renderHorizontalGridLines(true)
             .brushOn(true)
-            .xAxis().tickFormat(d3.time.format('%b %d'));*/
+            .xAxis().tickFormat(d3.time.format('%b %d'));
+
+        /*
+        datesBarChart.on("renderlet.somename", function(chart) {
+            chart.selectAll('rect').on("click", function(d) {
+                console.log("click!", d);
+            });
+        });
+        */
+
 
         dc.renderAll();
     }
