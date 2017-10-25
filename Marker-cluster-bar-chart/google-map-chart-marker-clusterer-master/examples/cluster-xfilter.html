@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>crossfilter + maps</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Roboto'>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<!--<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>-->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script src="../lib/d3.js"></script>
+<script src="../lib/crossfilter.js"></script>
+<script src="chart.js"></script>
+<!--<script src="data.js"></script>-->
+<script src="setup.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAHvjraZ_YQXZvFg8etDFaKUxp3EG1-DOs"></script>
+<script type="text/javascript" src="../src/chart-markerclusterer.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.1/dc.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter2/1.4.0-alpha.6/crossfilter.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.1/dc.js"></script>
+
+<style>
+   body {
+      font-family: "Helvetica Neue";
+    }
+
+    #charts {
+      padding: 10px 0;
+    }
+
+    .chart {
+      display: inline-block;
+      height: 151px;
+      margin: 0 20px 20px;
+
+    }
+
+    .reset {
+      padding-left: 1em;
+      font-size: smaller;
+      color: #ccc;
+    }
+
+    .background.bar {
+      fill: #ccc;
+    }
+
+    .foreground.bar {
+      fill: rgb(245, 83, 74);
+    }
+
+    .axis path, .axis line {
+      fill: none;
+      stroke: #000;
+      shape-rendering: crispEdges;
+    }
+
+    .axis text {
+      font: 10px sans-serif;
+    }
+
+    .brush rect.extent {
+      fill: steelblue;
+      fill-opacity: .125;
+    }
+
+    .brush .resize path {
+      fill: #eee;
+      stroke: #666;
+    }
+
+    #val-chart {
+      width: 120px;
+    }
+
+    #val2-chart {
+      width: 420px;
+    }
+
+    #map {
+      width: 800px;
+      height: 480px;
+    }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', init, false);
+</script>
+
+</head>
+<body>
+    <div id="map"></div>
+    <div id="charts">
+      <div id="val-chart" class="chart">
+        <div class="title">Value 1</div>
+      </div>
+      <div id="val2-chart" class="chart">
+        <div class="title">Value 2</div>
+      </div>
+    </div>
+</body>
+</html>

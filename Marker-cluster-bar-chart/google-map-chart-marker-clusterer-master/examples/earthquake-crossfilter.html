@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Traffic Accident(新竹)</title>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/dc/1.6.0/dc.css"/>
+
+
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=true"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crossfilter2/1.4.0-alpha.6/crossfilter.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dc/2.1.1/dc.js"></script>
+<script src="http://code.jquery.com/jquery.js"></script>
+	
+	
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0-rc1/js/bootstrap.min.js"></script>
+
+</head>
+<body>
+	<img src="http://muyueh.com/seeall/image/metro.jpeg" style="display:none;">
+	
+
+	<div class="row">
+	<!-- 	<div class="col-lg-1"></div>
+		<div class="col-lg-8">
+			<h3>新竹交通事故地圖</h3>
+		</div> -->
+
+			<div id="map"></div>
+		
+		<div class="col-lg-1"></div>
+		<div class="col-lg-8">
+			<p>What kind of accident happens in the weekend? Drag on the bar chart. Or zoom in to different area.</p>
+			
+		</div>
+
+		<div class="col-lg-10">
+			<div id="DeathMonth" class="col-lg-3">Death/Month</div>
+			<!-- <div id="DeathDay" class="col-lg-3">Death/Day</div> -->
+			<div id="DeathWeekDay" class="col-lg-3">Death/WeekDay</div>
+			<div id="DeathHour" class="col-lg-3">Death/Hour</div>
+		</div>
+
+		<div class="col-lg-10">
+			<div id="AcciMonth" class="col-lg-3">Accident/Month</div>
+			<!-- <div id="AcciDay" class="col-lg-3">Accident/Day</div> -->
+			<div id="AcciWeekDay" class="col-lg-3">Accident/WeekDay</div>
+			<div id="AcciHour" class="col-lg-3">Accident/Hour</div>
+		</div>
+
+		<div class="col-lg-12">
+			<div class="col-lg-1"></div>
+			<div class="col-lg-8">
+				<h3>Traffic Accident Cross Filter(新竹)</h3>
+				<ul>
+					<li>Orange is traffic accident, red is traffic accident with mortality.</li>	
+					<li>This is January to October data of 2013. </li>
+				</ul>
+				<!-- <ul>
+					<li>目前約有 20% 的資料，Google Map API 無法轉換經緯度，假如有人可以協助進行辨識，地圖可以增進 20%</li>
+					<li>目前月份資料仍不完整，假如 11-12 月的車禍資訊可以取得，就可以有完整的一年</li>
+					<li>假如有其他地區的的資訊，可以做一個全臺的地圖，並比較不同區域的事故的差別</li>
+					<li>目前總體資料仍太少，假如有歷年的統計資料，我們或許可以更容易分辨出哪一種類型的車禍最致命</li>
+					<li>假如可以另外取得車流量的資訊，就可以統計出那些接口最危險了</li>
+				</ul> -->
+
+				<p>誠摯感謝柯維然。</p>
+			</div>
+		</div>
+	</div>
+	
+<script type="text/javascript">
+
+
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-36523378-1']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+	var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+
+var styledMap = new google.maps.StyledMapType(
+	[
+    {
+        "featureType": "water",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 17
+            }
+        ]
+    },
+    {
+        "featureType": "landscape",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 20
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 17
+            }
+        ]
+    },
+    {
+        "featureType": "road.highway",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "weight": 0.2
+            },
+            {
+                "lightness": 29
+            }
+        ]
+    },
+    {
+        "featureType": "road.arterial",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 18
+            }
+        ]
+    },
+    {
+        "featureType": "road.local",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 16
+            }
+        ]
+    },
+    {
+        "featureType": "poi",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 21
+            }
+        ]
+    },
+    {
+        "featureType": "all",
+        "elementType": "labels.text.stroke",
+        "stylers": [
+            {
+                "visibility": "on"
+            },
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 16
+            }
+        ]
+    },
+    {
+        "featureType": "all",
+        "elementType": "labels.text.fill",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 40
+            }
+        ]
+    },
+    {
+        "featureType": "all",
+        "elementType": "labels.icon",
+        "stylers": [
+            {
+                "visibility": "off"
+            }
+        ]
+    },
+    {
+        "featureType": "transit",
+        "elementType": "geometry",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 19
+            }
+        ]
+    },
+    {
+        "featureType": "administrative",
+        "elementType": "geometry.fill",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "lightness": 20
+            }
+        ]
+    },
+    {
+        "featureType": "administrative",
+        "elementType": "geometry.stroke",
+        "stylers": [
+            {
+                "color": "#000000"
+            },
+            {
+                "weight": 1.2
+            },
+            {
+                "lightness": 17
+            }
+        ]
+    }
+	],
+	{name: "Styled Map"});
+
+
+var map = new google.maps.Map(d3.select("#map").node(), {
+	zoom: 14,
+	center: new google.maps.LatLng(24.80363496720421, 120.96827655517575),
+	mapTypeControlOptions:{
+		mapTypeId: [google.maps.MapTypeId.ROADMAP, 'map_style']
+	}
+	// map_style: styledMap
+});
+
+var ndx;
+var all;
+var monthDim;
+var dayDim;
+var weekdayDim;
+var hourDim;
+var lngDim;
+var latDim;
+var acciMonth;
+var acciDay;
+var acciWeek;
+var acciHour;
+var deathMonth;
+var deathDay;
+var deathWeek;
+var deathHour;
+
+var projection;
+var padding;
+
+google.maps.event.addListener(map, "bounds_changed", function(){
+	var bounds = this.getBounds();
+	var northEast = bounds.getNorthEast();
+	var southWest = bounds.getSouthWest();
+
+	// console.log(southWest.lng() + " " + northEast.lng());
+
+	lngDim.filterRange([southWest.lng(), northEast.lng()]);
+	latDim.filterRange([southWest.lat(), northEast.lat()]);
+
+	dc.redrawAll();
+})
+
+map.mapTypes.set('map_style', styledMap);
+map.setMapTypeId('map_style');
+
+var colorDead = "#de2d26";
+// var colorAcci = "rgb(255, 184, 0)";
+var colorAcci = "rgb(255, 204, 0)";
+
+// "#2b8cbe";
+
+// Your beautiful D3 code will go here
+
+d3.tsv("./accidentXY.tsv", function(err, tsvBody){
+	// console.log(tsvBody);
+
+	var deadData = [];
+	tsvBody.filter(function(d){
+		// console.log(new Date(d["年"], d["月"], d["日"], d["時"], d["分"]));
+
+		d.GoogleLng = +d.GoogleLng;
+		d.GoogleLat = +d.GoogleLat;
+
+		d.date = new Date(d["年"], d["月"], d["日"], d["時"], d["分"]);
+		d.dead = (+d["2-30"]) + (+d["死"]);
+
+		if(d.dead > 0 ){
+			deadData.push(d);
+		}
+		return true;
+	})
+
+	// console.log(tsvBody);
+
+//map
+	var overlay = new google.maps.OverlayView();
+
+		overlay.onAdd = function() {
+		var layer = d3.select(this.getPanes().overlayLayer).append("div")
+				.attr("class", "stations");
+
+		// Draw each marker as a separate SVG element.
+		// We could use a single SVG, but what size would it have?
+		overlay.draw = function() {
+
+			// console.log(hourDim.top(Infinity));
+
+			projection = this.getProjection();
+			padding = 5;
+
+
+			var bindData = layer.selectAll("svg")
+				.data(tsvBody)
+				// .data(hourDim.top(Infinity))
+
+			var marker = bindData.each(transform)
+				.enter()
+				.append("svg")
+				.each(transform)
+				.attr({
+					"class": "marker",					
+				})
+				.style({
+					"width": "60px",
+					"height": "20px",
+					"position": "absolute"
+				});
+
+			
+
+			// // Add a circle.
+			marker.append("svg:circle")
+				.attr({
+					"r": 2,
+					"cx": padding,
+					"cy": padding,
+					"class": "datadot"
+				})
+				.style({
+					"fill": "none",
+					"stroke": function(d){
+						if(((+d["2-30"]) + (+d["死"]))){
+							return colorDead;
+						}
+						return colorAcci;
+					},
+					"stroke-width": function(d){
+						if(((+d["2-30"]) + (+d["死"]))){
+							return "5px";
+						}
+						// return "1.5px";
+						return "3px";
+					},
+					"position": "absolute",
+					"opacity": function(d){
+						// return 1;
+						if(((+d["2-30"]) + (+d["死"]))){
+							return 1;
+						}
+						return 0.3;
+					},
+				})
+
+			// console.log(map.getCenter());
+
+		}
+
+	};// overlay
+
+
+	// Bind our overlay to the map
+	overlay.setMap(map);
+
+
+
+
+
+var weekDayTable = ["Sun.", "Mon.", "Tue.", "Wed.", "Thu.", "Fri.", "Sat."];
+
+
+
+//dc.js
+	var barPerMonth = dc.barChart("#DeathMonth");
+	// var barPerDay = dc.barChart("#DeathDay");
+	var barPerWeekDay = dc.barChart("#DeathWeekDay");
+	var barPerHour = dc.barChart("#DeathHour");
+
+	var barAcciMonth = dc.barChart("#AcciMonth");
+	// var barAcciDay = dc.barChart("#AcciDay");
+	var barAcciWeekDay = dc.barChart("#AcciWeekDay");
+	var barAcciHour = dc.barChart("#AcciHour");
+
+	// var linePerMonth = dc.seriesChart("#DeathMonth");
+
+	ndx = crossfilter(tsvBody);
+	all = ndx.groupAll();
+
+	monthDim = ndx.dimension(function(d){
+		return d["月"];
+	});
+	dayDim = ndx.dimension(function(d){
+		return d["日"];
+	});
+	weekdayDim = ndx.dimension(function(d){
+		return weekDayTable[d.date.getDay()];
+	});
+	hourDim = ndx.dimension(function(d){
+		return d.date.getHours();
+	});
+
+	lngDim = ndx.dimension(function(d){
+		return d.GoogleLng;
+	});
+	latDim = ndx.dimension(function(d){
+		return d.GoogleLat;
+	});
+
+	acciMonth = monthDim.group().reduceCount();
+	acciDay = dayDim.group().reduceCount();
+	acciWeekDay = weekdayDim.group().reduceCount();
+	acciHour = hourDim.group().reduceCount();
+
+	deathMonth = monthDim.group().reduceSum(function(d){ return d.dead; });
+	deathDay = dayDim.group().reduceSum(function(d){ return d.dead; });
+	deathWeekDay = weekdayDim.group().reduceSum(function(d){ return d.dead; });
+	deathHour = hourDim.group().reduceSum(function(d){ return d.dead;});
+
+	barPerMonth.width(300)
+		.height(100)
+		.margins({
+			"top": 10,
+			"right": 10,
+			"left": 50,
+			"bottom": 20
+		})
+		.dimension(monthDim)
+		.group(deathMonth)
+		// .x(d3.scale.linear().domain([0,12]))
+		.x(d3.scale.ordinal().domain(d3.range(1,13)))
+		.xUnits(dc.units.ordinal)
+		.elasticY(true)
+		.colors(colorDead)
+		.on("filtered", function(c, f){
+			updateGraph();
+		})
+		.yAxis()
+		.ticks(3);
+
+	// barPerDay.width(300)
+	// 	.height(100)
+	// 	.margins({
+	// 		"top": 10,
+	// 		"right": 10,
+	// 		"left": 50,
+	// 		"bottom": 20
+	// 	})
+	// 	.dimension(dayDim)
+	// 	.group(deathDay)
+	// 	.x(d3.scale.linear().domain([1, 31]))
+	// 	.elasticY(true)
+	// 	.colors(colorDead)
+	// 	.on("filtered", function(c, f){
+	// 		updateGraph();
+	// 	})
+	// 	.yAxis()
+	// 	.ticks(3);
+
+	barPerWeekDay.width(300)
+		.height(100)
+		.margins({
+			"top": 10,
+			"right": 10,
+			"left": 50,
+			"bottom": 20
+		})
+		.dimension(weekdayDim)
+		.group(deathWeekDay)
+		.x(d3.scale.ordinal().domain(weekDayTable))
+		.xUnits(dc.units.ordinal)
+		.gap(4)
+		.elasticY(true)
+		.colors(colorDead)
+		.on("filtered", function(c, f){
+			updateGraph();
+		})
+		.yAxis()
+		.ticks(3);
+
+	barPerHour.width(300)
+		.height(100)
+		.margins({
+			"top": 10,
+			"right": 10,
+			"left": 50,
+			"bottom": 20
+		})
+		.dimension(hourDim)
+		.group(deathHour)
+		.x(d3.scale.linear().domain([0, 24]))
+		.elasticY(true)
+		.colors(colorDead)
+		.on("filtered", function(c, f){
+			updateGraph();
+		})
+		.yAxis()
+		.ticks(3);
+
+
+//accident
+
+	barAcciMonth.width(300)
+		.height(100)
+		.margins({
+			"top": 10,
+			"right": 10,
+			"left": 50,
+			"bottom": 20
+		})
+		.dimension(monthDim)
+		.group(acciMonth)
+		.x(d3.scale.ordinal().domain(d3.range(1,13)))
+		.xUnits(dc.units.ordinal)
+		// .x(d3.scale.linear().domain([1,12]))
+		.elasticY(true)
+		.colors(colorAcci)
+		.on("filtered", function(c, f){
+			updateGraph();
+		})
+		.yAxis()
+		.ticks(4);
+
+	// barAcciDay.width(300)
+	// 	.height(100)
+	// 	.margins({
+	// 		"top": 10,
+	// 		"right": 10,
+	// 		"left": 50,
+	// 		"bottom": 20
+	// 	})
+	// 	.dimension(dayDim)
+	// 	.group(acciDay)
+	// 	.x(d3.scale.linear().domain([1, 31]))
+	// 	.elasticY(true)
+	// 	.colors(colorAcci)
+	// 	.on("filtered", function(c, f){
+	// 		updateGraph();
+	// 	})
+	// 	.yAxis()
+	// 	.ticks(4);
+
+	barAcciWeekDay.width(300)
+		.height(100)
+		.margins({
+			"top": 10,
+			"right": 10,
+			"left": 50,
+			"bottom": 20
+		})
+		.dimension(weekdayDim)		
+		.group(acciWeekDay)
+		.x(d3.scale.ordinal().domain(weekDayTable))
+		.xUnits(dc.units.ordinal)
+		.elasticY(true)
+		.gap(4)
+		.colors(colorAcci)
+		.on("filtered", function(c, f){
+			updateGraph();
+		})
+		.yAxis()
+		.ticks(4);
+
+	barAcciHour.width(300)
+		.height(100)
+		.margins({
+			"top": 10,
+			"right": 10,
+			"left": 50,
+			"bottom": 20
+		})
+		.dimension(hourDim)
+		.group(acciHour)
+		.x(d3.scale.linear().domain([0, 24]))
+		.elasticY(true)
+		.colors(colorAcci)
+		.on("filtered", function(c, f){
+			updateGraph();
+		})
+		.yAxis()
+		.ticks(4);
+
+
+
+	dc.renderAll();
+
+
+	
+})
+
+function transform(d){
+
+	// console.log(d.GoogleLat + " " + GoogleLng);
+
+	d = new google.maps.LatLng(d.GoogleLat, d.GoogleLng);
+	d = projection.fromLatLngToDivPixel(d);
+
+	return d3.select(this)
+		.style("left", (d.x - padding) + "px")
+		.style("top", (d.y - padding) + "px");
+}
+
+function updateGraph(){
+
+	d3.selectAll(".marker")
+		.style("display", "none");
+
+	d3.selectAll(".marker")
+		.data(monthDim.top(Infinity))
+		.style("display", "inline");
+}
+
+</script>
+
+<style type="text/css">
+
+body {
+	background-color: #383636;
+	color: white;
+}
+
+svg text {
+	fill: white;
+}
+
+#map{
+
+	width: 1100px;
+	height: 400px;
+	margin: 0;
+	padding: 0;
+}
+
+
+</style>
+</body>
+</html>
