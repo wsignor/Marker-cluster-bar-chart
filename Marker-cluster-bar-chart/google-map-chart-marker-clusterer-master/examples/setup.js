@@ -1,3 +1,4 @@
+// populated in the place of points dataset
 var acidentes = [];
 var markerCluster;
 var map;
@@ -15,9 +16,15 @@ var latDimension;
 var lngDimension;
 var idDimension;
 var idGrouping;
+var myInternalFilter;
 
 
 function init() {
+
+    d3.csv("acidentes-2016-less.csv", function (d) {
+        acidentes = d;
+    });
+
     initMap();
     initCrossfilter();
 
@@ -30,6 +37,7 @@ function init() {
     lngDimension = filter.dimension(function (p) {
         return p.LONGITUDE;
     });
+
 
     google.maps.event.addListener(map, 'bounds_changed', function () {
         var bounds = this.getBounds();
@@ -48,6 +56,7 @@ function init() {
     idDimension = filter.dimension(function (p, i) {
         return i;
     });
+
     idGrouping = idDimension.group(function (id) {
         return id;
     });
@@ -56,13 +65,8 @@ function init() {
 }
 
 function initMap() {
-    d3.csv("acidentes-2016-less.csv", function (d) {
-        acidentes = d;
-        //    initialize();
-    });
 
     google.maps.visualRefresh = true;
-
     var myLatlng = new google.maps.LatLng(-30.085209, -51.233864);
 
     map = new google.maps.Map(document.getElementById('map'), {
@@ -71,7 +75,12 @@ function initMap() {
         mapTypeId: google.maps.MapTypeId.ROADMAP
     });
 
-    //console.log('acidentes: ' , acidentes);
+    //check how to add it
+    if(typeof myInternalFilter != 'undefined' && myInternalFilter.top(Infinity).length > 0){
+        console.log("1: " , acidentes);
+        acidentes = myInternalFilter.top(Infinity);
+        console.log("2: " , acidentes);
+    }
 
     markers = [];
     for (var i = 0; i < acidentes.length; i++) {
@@ -147,7 +156,7 @@ function initCrossfilter() {
     // simple dimensions and groupings for major variables
     val1Dimension = filter.dimension(
         function (p) {
-            console.log("feridos: " + p.FERIDOS);
+            //console.log("feridos: " + p.FERIDOS);
             return p.FERIDOS;
         });
     val1Grouping = val1Dimension.group();
@@ -155,11 +164,16 @@ function initCrossfilter() {
 
     val2Dimension = filter.dimension(
         function (p) {
-            console.log("UPS: " + p.UPS);
+            //console.log("UPS: " + p.UPS);
             return p.UPS;
         });
     val2Grouping = val2Dimension.group();
 
+    myInternalFilter = filter.dimension(
+        function(p){
+            return p;
+        }
+    );
 
     // initialize charts (helper function in chart.js)
     // taken directly from crossfilter's example
@@ -190,6 +204,7 @@ function initCrossfilter() {
 
 // Renders the specified chart
 function render(method) {
+    var count = filter.size();
     d3.select(this).call(method);
 }
 
@@ -211,6 +226,7 @@ function updateMarkers() {
 function renderAll() {
     updateMarkers();
     updateCharts();
+    //initMap();
 }
 
 // Reset a particular histogram
