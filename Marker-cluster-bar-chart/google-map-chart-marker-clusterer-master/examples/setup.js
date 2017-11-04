@@ -52,6 +52,8 @@ function init() {
         updateCharts();
     });
 
+
+
     // dimension and group for looking up currently selected markers
     idDimension = filter.dimension(function (p, i) {
         return i;
@@ -156,7 +158,6 @@ function initCrossfilter() {
     // simple dimensions and groupings for major variables
     val1Dimension = filter.dimension(
         function (p) {
-            //console.log("feridos: " + p.FERIDOS);
             return p.FERIDOS;
         });
     val1Grouping = val1Dimension.group();
@@ -164,7 +165,6 @@ function initCrossfilter() {
 
     val2Dimension = filter.dimension(
         function (p) {
-            //console.log("UPS: " + p.UPS);
             return p.UPS;
         });
     val2Grouping = val2Dimension.group();
@@ -215,11 +215,71 @@ function updateCharts() {
 
 // set visibility of markers based on crossfilter
 function updateMarkers() {
-    var pointIds = idGrouping.all();
+    /*var pointIds = idGrouping.all();
     for (var i = 0; i < pointIds.length; i++) {
         var pointId = pointIds[i];
         markers[pointId.key].setVisible(pointId.value > 0);
+    }*/
+    markerCluster.clearMarkers();
+
+    var pointIds = myInternalFilter.top(Infinity);
+
+    console.log(pointIds);
+
+    markers = [];
+    for (var i = 0; i < pointIds.length; i++) {
+        //Actually acidentes[i].FERIDOS gets the number of victims per accident instead of a code to severity
+        var accident_injuries = pointIds[i].FERIDOS;
+        var accident_title = "";
+        //var accident_lnglat = acidentes[i].geometry["coordinates"];
+        switch (Number(accident_injuries)) {
+            case 1:
+                accident_title = "Fatal";
+                break;
+            case 3:
+                accident_title = "Serious injuries";
+                break;
+            case 2:
+                accident_title = "Very serious injuries";
+                break;
+            case 5:
+                accident_title = "No injuries";
+                break;
+            case 4:
+                accident_title = "Minor injuries";
+                break;
+            case 6:
+                accident_title = "Not recorded";
+                break;
+        }
+        var accident_LatLng = new google.maps.LatLng(pointIds[i].LATITUDE, pointIds[i].LONGITUDE);
+        var marker = new google.maps.Marker({
+            position: accident_LatLng,
+            title: accident_title
+        });
+        markers.push(marker);
     }
+
+    var opt = {
+        "styles": [
+            {textColor: "black", textSize: 15, height: 60, width: 60},
+            {textColor: "black", textSize: 15, height: 70, width: 70},
+            {textColor: "black", textSize: 15, height: 80, width: 80},
+            {textColor: "black", textSize: 15, height: 90, width: 90},
+            {textColor: "black", textSize: 15, height: 100, width: 100}
+        ],
+
+        "legend": {
+            "Fatal": "#FF0066",
+            "Very serious injuries": "#FF9933",
+            "Serious injuries": "#FFFF00",
+            "Minor injuries": "#99FF99",
+            "No injuries": "#66CCFF",
+            "Not recorded": "#A5A5A5"
+        }
+    };
+
+    markerCluster = new MarkerClusterer(map, markers, opt);
 }
 
 // Whenever the brush moves, re-render charts and map markers
