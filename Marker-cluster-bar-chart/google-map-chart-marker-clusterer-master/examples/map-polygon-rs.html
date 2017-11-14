@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Google Maps Code</title>
+</head>
+<body>
+<div id="map" style="max-width: 640px; height: 400px;"></div>
+<script>
+    //map controls/options, map styling, drawing, markers, info windows, events
+    //init map - get key, restrict access
+    //draw area
+    //add markers - you can get coordinates from address and other way around
+    //add mouse over event
+    //add click event and info window
+    //on click in area add dragable marker with circle around that can"t be pulled outside area
+    //show other markers inside circle, those have info window, mouse over scrolls list and shows distance from current marker
+
+    var map;
+    var markers = [];
+    var areaCoordinates = [
+        {lat: 45.5548, lng: 18.6954},
+        {lat: 45.5569, lng: 18.6868},
+        {lat: 45.5564, lng: 18.6859},
+        {lat: 45.5560, lng: 18.6754},
+        {lat: 45.5542, lng: 18.6756},
+        {lat: 45.5473, lng: 18.6792},
+        {lat: 45.5451, lng: 18.6778},
+        {lat: 45.5451, lng: 18.6799},
+        {lat: 45.5459, lng: 18.6849},
+        {lat: 45.5466, lng: 18.6868},
+        {lat: 45.5488, lng: 18.6928},
+        {lat: 45.5501, lng: 18.7056},
+        {lat: 45.5546, lng: 18.7049},
+        {lat: 45.5586, lng: 18.7052},
+        {lat: 45.5590, lng: 18.7025},
+        {lat: 45.5586, lng: 18.6978}
+    ];
+    var area;
+    var data = [
+        {position: {lat: 45.5528, lng: 18.6934}, value: {h2: "Object 1", text: "Description object 1"}},
+        {position: {lat: 45.5539, lng: 18.6868}, value: {h2: "Object 2", text: "Description object 2"}},
+        {position: {lat: 45.5564, lng: 18.6999}, value: {h2: "Object 3", text: "Description object 3"}},
+        {position: {lat: 45.5540, lng: 18.6794}, value: {h2: "Object 4", text: "Description object 4"}},
+        {position: {lat: 45.5512, lng: 18.6836}, value: {h2: "Object 5", text: "Description object 5"}},
+        {position: {lat: 45.5473, lng: 18.6842}, value: {h2: "Object 6", text: "Description object 6"}},
+        {position: {lat: 45.5511, lng: 18.6978}, value: {h2: "Object 7", text: "Description object 7"}},
+        {position: {lat: 45.5531, lng: 18.6998}, value: {h2: "Object 8", text: "Description object 8"}},
+        {position: {lat: 45.5511, lng: 18.7028}, value: {h2: "Object 9", text: "Description object 9"}},
+        {position: {lat: 45.5511, lng: 18.6898}, value: {h2: "Object 10", text: "Description object 10"}},
+        {position: {lat: 45.5491, lng: 18.6908}, value: {h2: "Object 11", text: "Description object 11"}}
+    ];
+    var infowindow;
+    var circle;
+    var currentPosition;
+
+    var geocodingService;
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+            center: {lat: 45.5518, lng: 18.6914},
+            zoom: 14,
+            disableDefaultUI: true,
+            styles: mapStyles
+        });
+
+        var kml_url = "http://www.gmapas.com/poligonos-ibge/poligonos-municipios-ibge-rio-grande-do-sul/Municipios_RS.kml?attredirects=0&d=1";
+
+        console.log(kml_url);
+
+        var laBoundaries = new google.maps.KmlLayer({
+            url: kml_url,
+            map: map
+        });
+
+        area = new google.maps.Polygon({
+            paths: areaCoordinates,
+            strokeColor: "#FF0000",
+            strokeOpacity: 0.6,
+            strokeWeight: 2,
+            fillColor: "#FF0000",
+            fillOpacity: 0.25
+        });
+        area.setMap(map);
+
+        google.maps.event.addListener(area, "click", function(event) {
+            if(!circle){
+                addCircle(event.latLng);
+            }
+        });
+
+        infowindow = new google.maps.InfoWindow();
+
+        var addMarkersButton = document.createElement("button");
+        addMarkersButton.innerHTML  = "Add markers";
+        addMarkersButton.setAttribute("style", "margin-top: 20px");
+        map.controls[google.maps.ControlPosition.TOP_CENTER].push(addMarkersButton);
+
+        google.maps.event.addDomListener(addMarkersButton, "click", function() {
+            addMarkersButton.style.display = "none";
+            addMarkers();
+        });
+
+        geocodingService = new google.maps.Geocoder();
+
+        var addressInput = document.createElement("input");
+        addressInput.setAttribute("type", "text");
+        addressInput.value = "Osijek, Croatia";
+
+        var getCoordinatesButton = document.createElement("button");
+        getCoordinatesButton.innerHTML  = "Coordinates";
+
+        var geocodingContainer = document.createElement("div");
+        geocodingContainer.setAttribute("style", "margin-bottom: 20px");
+        geocodingContainer.appendChild(addressInput);
+        geocodingContainer.appendChild(getCoordinatesButton);
+        map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(geocodingContainer);
+
+        google.maps.event.addDomListener(getCoordinatesButton, "click", function() {
+            getCoordinates(addressInput.value);
+        });
+    }
+
+    function addMarkers(){
+        for (var i = 0; i < data.length; i++) {
+            addMarkerWithTimeout(data[i], i * 200)
+        }
+    }
+
+    function addMarkerWithTimeout(data, timeout){
+        window.setTimeout(function() {
+            var marker = new google.maps.Marker({
+                position: data.position,
+                map: map,
+                animation: google.maps.Animation.DROP
+            });
+
+            google.maps.event.addListener(marker, "mouseover", function(event) {
+                marker.setIcon("http://maps.google.com/mapfiles/marker_green.png");
+            });
+            google.maps.event.addListener(marker, "mouseout", function(event) {
+                marker.setIcon();
+            });
+
+            marker.addListener("click", function() {
+                infowindow.setContent("<div><h2>" + data.value.h2 + "</h2><p>" + data.value.text + "</p></div>")
+                infowindow.open(map, marker);
+            });
+
+            markers.push(marker);
+        }, timeout);
+    }
+
+    function addCircle(center){
+        circle = new google.maps.Circle({
+            strokeColor: "#0000FF",
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: "#0000FF",
+            fillOpacity: 0.35,
+            map: map,
+            center: center,
+            radius: 300,
+            draggable: true,
+            zindex: 100
+        });
+
+        circle.addListener("dragstart", function() {
+            currentPosition = circle.getCenter();
+        });
+
+        circle.addListener("dragend", function() {
+            var insideArea = google.maps.geometry.poly.containsLocation(circle.getCenter(), area);
+            if(!insideArea) {
+                circle.setCenter(currentPosition);
+            }
+        });
+    }
+
+    function getCoordinates(address){
+        geocodingService.geocode( { "address": address }, function(results, status) {
+            if (status == "OK") {
+                var location = results[0].geometry.location;
+                alert("Lat: " + location.lat() + "\n" + "Lng:" + location.lng());
+            } else {
+                alert("Geocode was not successful for the following reason: " + status);
+            }
+        });
+    }
+
+    var mapStyles = [
+        {
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#f5f5f5"
+                }
+            ]
+        },
+        {
+            "elementType": "labels.icon",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#616161"
+                }
+            ]
+        },
+        {
+            "elementType": "labels.text.stroke",
+            "stylers": [
+                {
+                    "color": "#f5f5f5"
+                }
+            ]
+        },
+        {
+            "featureType": "administrative",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "administrative.land_parcel",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "administrative.land_parcel",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#bdbdbd"
+                }
+            ]
+        },
+        {
+            "featureType": "administrative.neighborhood",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "poi",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "poi",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#eeeeee"
+                }
+            ]
+        },
+        {
+            "featureType": "poi",
+            "elementType": "labels.text",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "poi",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#757575"
+                }
+            ]
+        },
+        {
+            "featureType": "poi.park",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#e5e5e5"
+                }
+            ]
+        },
+        {
+            "featureType": "poi.park",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#9e9e9e"
+                }
+            ]
+        },
+        {
+            "featureType": "road",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#ffffff"
+                }
+            ]
+        },
+        {
+            "featureType": "road",
+            "elementType": "labels",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "road",
+            "elementType": "labels.icon",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "road.arterial",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#757575"
+                }
+            ]
+        },
+        {
+            "featureType": "road.highway",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#dadada"
+                }
+            ]
+        },
+        {
+            "featureType": "road.highway",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#616161"
+                }
+            ]
+        },
+        {
+            "featureType": "road.local",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#9e9e9e"
+                }
+            ]
+        },
+        {
+            "featureType": "transit",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "transit.line",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#e5e5e5"
+                }
+            ]
+        },
+        {
+            "featureType": "transit.station",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#eeeeee"
+                }
+            ]
+        },
+        {
+            "featureType": "water",
+            "elementType": "geometry",
+            "stylers": [
+                {
+                    "color": "#c9c9c9"
+                }
+            ]
+        },
+        {
+            "featureType": "water",
+            "elementType": "labels.text",
+            "stylers": [
+                {
+                    "visibility": "off"
+                }
+            ]
+        },
+        {
+            "featureType": "water",
+            "elementType": "labels.text.fill",
+            "stylers": [
+                {
+                    "color": "#9e9e9e"
+                }
+            ]
+        }
+    ];
+</script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDu8qzVk7y5NpGqN93q_hiCINGzla6RzvA&callback=initMap"></script>
+</body>
+</html>
