@@ -1,0 +1,1 @@
+The idea of this project is propose different data visualizations for geospatial data. Including clusterization of multiple points in barcharts and an integrated model of visualization using maps and other charts.
